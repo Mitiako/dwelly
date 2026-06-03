@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { RENTCAST_API_URL, RENTCAST_API_KEY } from '../constants'
-import type { RentCastResponse, MarketData } from '../types'
+import type { MarketData } from '../types'
 
 const rentcastClient = axios.create({
   baseURL: RENTCAST_API_URL,
@@ -10,30 +10,42 @@ const rentcastClient = axios.create({
   },
 })
 
-// Отримати дані ринку по zip коду
-export const getMarketData = async (zipCode: string): Promise<RentCastResponse> => {
-  const response = await rentcastClient.get<RentCastResponse>(`/markets`, {
-    params: { zipCode },
-  })
-  return response.data
-}
-
-// Отримати активні лістинги по місту
-export const getListings = async (
+// Отримати дані ринку по місту і штату
+export const fetchMarketDataFromAPI = async (
   city: string,
-  state: string,
-  limit: number = 20
-): Promise<MarketData[]> => {
-  const response = await rentcastClient.get<MarketData[]>(`/listings/sale`, {
-    params: { city, state, limit },
-  })
-  return response.data
-}
+  state: string
+): Promise<MarketData | null> => {
+  try {
+    const response = await rentcastClient.get('/markets', {
+      params: {
+        city,
+        state,
+        dataType: 'Sale',
+      },
+    })
 
-// Отримати дані оренди по zip коду
-export const getRentalData = async (zipCode: string): Promise<RentCastResponse> => {
-  const response = await rentcastClient.get<RentCastResponse>(`/markets`, {
-    params: { zipCode, dataType: 'rental' },
-  })
-  return response.data
+    const data = response.data
+
+    // Перетворюємо відповідь RentCast у наш формат MarketData
+    return {
+      zipCode: data.zipCode || '',
+      city,
+      state,
+      saleData: {
+        averagePrice: data.averagePrice || 0,
+        medianPrice: data.medianPrice || 0,
+        averagePricePerSquareFoot: data.averagePricePerSquareFoot || 0,
+        averageDaysOnMarket: data.averageDaysOnMarket || 0,
+        newListings: data.newListings || 0,
+        totalListings: data.totalListings || 0,
+      },
+      rentalData: {
+        averageRent: 0,
+        medianRent: 0,
+      },
+    }
+  } catch (error) {
+    console.error(`RentCast API error for ${city}, ${state}:`, error)
+    return null
+  }
 }
