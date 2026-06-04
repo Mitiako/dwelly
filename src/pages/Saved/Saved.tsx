@@ -42,7 +42,7 @@ const Saved = () => {
       </div>
 
       {/* Saved Cities Grid */}
-      <div className='grid grid-cols-3 gap-4'>
+      <div className='flex flex-wrap gap-4'>
         {savedMarkets.map(({ id, city, savedAt, lastUpdatedAt }) => {
           const data = mockMarketData[id]
           if (!data) return null
@@ -50,95 +50,92 @@ const Saved = () => {
           const updateAvailable = canUpdate(lastUpdatedAt)
 
           return (
-            <Card key={id} className='relative hover:border-[#333333] transition-all'>
+            <Card key={id} className='relative hover:border-[#333333] transition-all p-4 pb-3 w-80'>
+  {/* Remove Button */}
+  <button
+    onClick={() => removeMarket(id)}
+    aria-label={`Remove ${city.name}`}
+    className='absolute top-3 right-3 text-gray-600 hover:text-red-400 transition-colors'
+  >
+    <Trash2 size={12} />
+  </button>
 
-              {/* Remove Button */}
-              <button
-                onClick={() => removeMarket(id)}
-                aria-label={`Remove ${city.name}`}
-                className='absolute top-3 right-3 text-gray-600 hover:text-red-400 transition-colors'
-              >
-                <Trash2 size={14} />
-              </button>
+  {/* City Info */}
+  <div className='flex items-center gap-2 mb-3'>
+    <div className='w-7 h-7 bg-cyan-400/10 rounded-lg flex items-center justify-center'>
+      <MapPin size={12} className='text-cyan-400' />
+    </div>
+    <div>
+      <h3 className='text-white font-semibold text-sm'>{city.name}</h3>
+      <p className='text-gray-500 text-xs'>{city.state}</p>
+    </div>
+  </div>
 
-              {/* City Info */}
-              <div className='flex items-center gap-2 mb-4'>
-                <div className='w-8 h-8 bg-cyan-400/10 rounded-lg flex items-center justify-center'>
-                  <MapPin size={14} className='text-cyan-400' />
-                </div>
-                <div>
-                  <h3 className='text-white font-semibold'>{city.name}</h3>
-                  <p className='text-gray-500 text-xs'>{city.state}</p>
-                </div>
-              </div>
+  {/* Stats */}
+  <div className='space-y-1.5 mb-3'>
+    <div className='flex justify-between'>
+      <span className='text-gray-400 text-xs'>Avg Price</span>
+      <span className='text-cyan-400 text-xs font-medium'>
+        {formatPrice(data.saleData.averagePrice)}
+      </span>
+    </div>
+    <div className='flex justify-between'>
+      <span className='text-gray-400 text-xs'>Median Price</span>
+      <span className='text-white text-xs'>
+        {formatPrice(data.saleData.medianPrice)}
+      </span>
+    </div>
+    <div className='flex justify-between'>
+      <span className='text-gray-400 text-xs'>Days on Market</span>
+      <span className='text-white text-xs'>
+        {data.saleData.averageDaysOnMarket} days
+      </span>
+    </div>
+    <div className='flex justify-between'>
+      <span className='text-gray-400 text-xs'>Active Listings</span>
+      <span className='text-white text-xs'>
+        {formatNumber(data.saleData.totalListings)}
+      </span>
+    </div>
+    <div className='flex justify-between'>
+      <span className='text-gray-400 text-xs'>Avg Rent</span>
+      <span className='text-white text-xs'>
+        {formatPrice(data.rentalData.averageRent)}
+      </span>
+    </div>
+  </div>
 
-              {/* Stats */}
-              <div className='space-y-2 mb-4'>
-                <div className='flex justify-between'>
-                  <span className='text-gray-400 text-xs'>Avg Price</span>
-                  <span className='text-cyan-400 text-xs font-medium'>
-                    {formatPrice(data.saleData.averagePrice)}
-                  </span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-400 text-xs'>Median Price</span>
-                  <span className='text-white text-xs'>
-                    {formatPrice(data.saleData.medianPrice)}
-                  </span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-400 text-xs'>Days on Market</span>
-                  <span className='text-white text-xs'>
-                    {data.saleData.averageDaysOnMarket} days
-                  </span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-400 text-xs'>Active Listings</span>
-                  <span className='text-white text-xs'>
-                    {formatNumber(data.saleData.totalListings)}
-                  </span>
-                </div>
-                <div className='flex justify-between'>
-                  <span className='text-gray-400 text-xs'>Avg Rent</span>
-                  <span className='text-white text-xs'>
-                    {formatPrice(data.rentalData.averageRent)}
-                  </span>
-                </div>
-              </div>
+  {/* Update Status */}
+  <div className='border-t border-[#222222] pt-2 space-y-2.5'>
+    <div className='flex items-center justify-between'>
+      <p className='text-gray-600 text-xs'>
+        Saved {new Date(savedAt).toLocaleDateString()}
+      </p>
+      <button
+        onClick={() => navigate(`/dashboard?city=${id}`)}
+        className='flex items-center gap-1 text-cyan-400 text-xs hover:text-cyan-300 transition-colors'
+      >
+        <BarChart2 size={11} />
+        View Dashboard
+      </button>
+    </div>
 
-              {/* Update Status */}
-              <div className='border-t border-[#222222] pt-3 space-y-2'>
-                <div className='flex items-center justify-between'>
-                  <p className='text-gray-600 text-xs'>
-                    Saved {new Date(savedAt).toLocaleDateString()}
-                  </p>
-                  <button
-                    onClick={() => navigate(`/dashboard?city=${id}`)}
-                    className='flex items-center gap-1.5 text-cyan-400 text-xs hover:text-cyan-300 transition-colors'
-                  >
-                    <BarChart2 size={12} />
-                    View Dashboard
-                  </button>
-                </div>
-
-                {/* Update button or countdown */}
-                {updateAvailable ? (
-                  <button
-                    onClick={() => updateMarket(id)}
-                    className='w-full flex items-center justify-center gap-2 py-1.5 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-xs font-medium hover:bg-cyan-400/20 transition-all'
-                  >
-                    <RefreshCw size={12} />
-                    Update Data
-                  </button>
-                ) : (
-                  <div className='flex items-center gap-1.5 text-gray-500 text-xs'>
-                    <Clock size={11} />
-                    Next update available in {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
-                  </div>
-                )}
-              </div>
-
-            </Card>
+    {updateAvailable ? (
+      <button
+        onClick={() => updateMarket(id)}
+        className='w-full flex items-center justify-center gap-2 py-1.5 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-xs font-medium hover:bg-cyan-400/20 transition-all'
+      >
+        <RefreshCw size={11} />
+        Update Data
+      </button>
+    ) : (
+      <div className='flex items-center justify-center gap-1.5 text-gray-500 text-xs mt-1'>
+  <Clock size={10} />
+  Next update in {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
+</div>
+    )}
+  </div>
+</Card>
           )
         })}
       </div>
