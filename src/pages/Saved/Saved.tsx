@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Heart, Trash2, BarChart2, MapPin } from 'lucide-react'
+import { Heart, Trash2, BarChart2, MapPin, RefreshCw, Clock } from 'lucide-react'
 import Card from '../../components/ui/Card'
 import { useSavedMarkets } from '../../hooks/useSavedMarkets'
 import { mockMarketData } from '../../data/mockData'
@@ -7,7 +7,7 @@ import { formatPrice, formatNumber } from '../../utils/formatters'
 
 const Saved = () => {
   const navigate = useNavigate()
-  const { savedMarkets, removeMarket } = useSavedMarkets()
+  const { savedMarkets, removeMarket, updateMarket, getDaysUntilUpdate, canUpdate } = useSavedMarkets()
 
   if (savedMarkets.length === 0) {
     return (
@@ -43,9 +43,12 @@ const Saved = () => {
 
       {/* Saved Cities Grid */}
       <div className='grid grid-cols-3 gap-4'>
-        {savedMarkets.map(({ id, city, savedAt }) => {
+        {savedMarkets.map(({ id, city, savedAt, lastUpdatedAt }) => {
           const data = mockMarketData[id]
           if (!data) return null
+          const daysLeft = getDaysUntilUpdate(lastUpdatedAt)
+          const updateAvailable = canUpdate(lastUpdatedAt)
+
           return (
             <Card key={id} className='relative hover:border-[#333333] transition-all'>
 
@@ -103,18 +106,36 @@ const Saved = () => {
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className='border-t border-[#222222] pt-3 flex items-center justify-between'>
-                <p className='text-gray-600 text-xs'>
-                  Saved {new Date(savedAt).toLocaleDateString()}
-                </p>
-                <button
-                  onClick={() => navigate(`/dashboard?city=${id}`)}
-                  className='flex items-center gap-1.5 text-cyan-400 text-xs hover:text-cyan-300 transition-colors'
-                >
-                  <BarChart2 size={12} />
-                  View Dashboard
-                </button>
+              {/* Update Status */}
+              <div className='border-t border-[#222222] pt-3 space-y-2'>
+                <div className='flex items-center justify-between'>
+                  <p className='text-gray-600 text-xs'>
+                    Saved {new Date(savedAt).toLocaleDateString()}
+                  </p>
+                  <button
+                    onClick={() => navigate(`/dashboard?city=${id}`)}
+                    className='flex items-center gap-1.5 text-cyan-400 text-xs hover:text-cyan-300 transition-colors'
+                  >
+                    <BarChart2 size={12} />
+                    View Dashboard
+                  </button>
+                </div>
+
+                {/* Update button or countdown */}
+                {updateAvailable ? (
+                  <button
+                    onClick={() => updateMarket(id)}
+                    className='w-full flex items-center justify-center gap-2 py-1.5 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-xs font-medium hover:bg-cyan-400/20 transition-all'
+                  >
+                    <RefreshCw size={12} />
+                    Update Data
+                  </button>
+                ) : (
+                  <div className='flex items-center gap-1.5 text-gray-500 text-xs'>
+                    <Clock size={11} />
+                    Next update available in {daysLeft} {daysLeft === 1 ? 'day' : 'days'}
+                  </div>
+                )}
               </div>
 
             </Card>

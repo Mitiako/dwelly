@@ -24,6 +24,7 @@ export const useSavedMarkets = () => {
       id: city.id,
       city,
       savedAt: new Date().toISOString(),
+      lastUpdatedAt: new Date().toISOString(),
     }
     setSavedMarkets(prev => [...prev, newMarket])
   }
@@ -36,10 +37,35 @@ export const useSavedMarkets = () => {
     return savedMarkets.some(m => m.id === cityId)
   }
 
+  const updateMarket = (cityId: string) => {
+    setSavedMarkets(prev =>
+      prev.map(m =>
+        m.id === cityId
+          ? { ...m, lastUpdatedAt: new Date().toISOString() }
+          : m
+      )
+    )
+  }
+
+  const getDaysUntilUpdate = (lastUpdatedAt: string): number => {
+    const lastUpdate = new Date(lastUpdatedAt)
+    const now = new Date()
+    const diffMs = now.getTime() - lastUpdate.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    return Math.max(0, 30 - diffDays)
+  }
+
+  const canUpdate = (lastUpdatedAt: string): boolean => {
+    return getDaysUntilUpdate(lastUpdatedAt) === 0
+  }
+
   return {
     savedMarkets,
     addMarket,
     removeMarket,
     isMarketSaved,
+    updateMarket,
+    getDaysUntilUpdate,
+    canUpdate,
   }
 }

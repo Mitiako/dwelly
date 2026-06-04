@@ -50,6 +50,7 @@ export interface SavedMarket {
   id: string
   city: City
   savedAt: string
+  lastUpdatedAt: string
 }
 
 // API Response Types
