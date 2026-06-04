@@ -22,7 +22,8 @@ const Dashboard = () => {
   const { isMarketSaved, addMarket, removeMarket } = useSavedMarkets()
   const navigate = useNavigate()
 const [searchQuery, setSearchQuery] = useState('')
-const [showDropdown, setShowDropdown] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false)
+const [selectedIndex, setSelectedIndex] = useState(-1)
 const debouncedQuery = useDebounce(searchQuery, 300)
 
 const filteredCities = POPULAR_CITIES.filter(city =>
@@ -58,16 +59,39 @@ const filteredCities = POPULAR_CITIES.filter(city =>
   <div className='relative w-[500px]'>
     <Search size={16} className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400' />
     <input
-      type='text'
-      placeholder='Search city or state...'
-      value={searchQuery}
-      onChange={e => {
-        setSearchQuery(e.target.value)
-        setShowDropdown(true)
-      }}
-      onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-      className='w-full bg-[#1a1a1a] border border-[#333333] rounded-lg pl-9 pr-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition-colors'
-    />
+  type='text'
+  placeholder='Search city or state...'
+  value={searchQuery}
+  onChange={e => {
+    setSearchQuery(e.target.value)
+    setShowDropdown(true)
+    setSelectedIndex(-1)
+  }}
+  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+  onKeyDown={e => {
+    const cities = filteredCities.slice(0, 6)
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIndex(prev => Math.min(prev + 1, cities.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIndex(prev => Math.max(prev - 1, -1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedIndex >= 0 && cities[selectedIndex]) {
+        navigate(`/dashboard?city=${cities[selectedIndex].id}`)
+        setSearchQuery('')
+        setShowDropdown(false)
+        setSelectedIndex(-1)
+      }
+    } else if (e.key === 'Escape') {
+      setSearchQuery('')
+      setShowDropdown(false)
+      setSelectedIndex(-1)
+    }
+  }}
+  className='w-full bg-[#1a1a1a] border border-[#333333] rounded-lg pl-9 pr-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition-colors'
+/>
     {showDropdown && debouncedQuery && (
       <div className='absolute top-full left-0 right-0 mt-1 bg-[#111111] border border-[#333333] rounded-lg overflow-hidden z-10'>
         {filteredCities.length > 0 ? (
@@ -79,7 +103,11 @@ const filteredCities = POPULAR_CITIES.filter(city =>
                 setSearchQuery('')
                 setShowDropdown(false)
               }}
-              className='w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[#1a1a1a] transition-colors text-left'
+              className={`w-full flex items-center gap-2 px-3 py-2.5 transition-colors text-left ${
+  filteredCities.slice(0, 6).indexOf(city) === selectedIndex
+    ? 'bg-[#222222]'
+    : 'hover:bg-[#1a1a1a]'
+}`}
             >
               <MapPin size={12} className='text-cyan-400' />
               <span className='text-white text-sm'>{city.name}</span>

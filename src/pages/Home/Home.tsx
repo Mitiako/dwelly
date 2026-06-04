@@ -18,6 +18,8 @@ const Home = () => {
     navigate(`/dashboard?city=${cityId}`)
   }
 
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+
   return (
     <div className='min-h-screen bg-[#0a0a0a] text-white'>
 
@@ -38,7 +40,7 @@ const Home = () => {
       </nav>
 
       {/* Hero */}
-      <section className='flex flex-col items-center justify-center px-8 py-24 text-center'>
+      <section className='flex flex-col items-center justify-center px-8 py-12 text-center'>
         <div className='inline-flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/20 rounded-full px-4 py-1.5 mb-6'>
           <TrendingUp size={14} className='text-cyan-400' />
           <span className='text-cyan-400 text-sm'>US Real Estate Analytics</span>
@@ -57,12 +59,34 @@ const Home = () => {
         <div className='relative w-full max-w-xl'>
           <Search size={18} className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400' />
           <input
-            type='text'
-            placeholder='Search city or state...'
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className='w-full bg-[#111111] border border-[#333333] rounded-xl pl-11 pr-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition-colors'
-          />
+  type='text'
+  placeholder='Search city or state...'
+  value={query}
+  onChange={e => {
+    setQuery(e.target.value)
+    setSelectedIndex(-1)
+  }}
+  onKeyDown={e => {
+    const cities = filteredCities.slice(0, 6)
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIndex(prev => Math.min(prev + 1, cities.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIndex(prev => Math.max(prev - 1, -1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedIndex >= 0 && cities[selectedIndex]) {
+        handleCitySelect(cities[selectedIndex].id)
+        setSelectedIndex(-1)
+      }
+    } else if (e.key === 'Escape') {
+      setQuery('')
+      setSelectedIndex(-1)
+    }
+  }}
+  className='w-full bg-[#111111] border border-[#333333] rounded-xl pl-11 pr-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition-colors'
+/>
           {/* Dropdown */}
           {query && (
             <div className='absolute top-full left-0 right-0 mt-2 bg-[#111111] border border-[#333333] rounded-xl overflow-hidden z-10'>
@@ -71,7 +95,11 @@ const Home = () => {
                   <button
                     key={city.id}
                     onClick={() => handleCitySelect(city.id)}
-                    className='w-full flex items-center gap-3 px-4 py-3 hover:bg-[#1a1a1a] transition-colors text-left'
+                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors text-left ${
+  filteredCities.slice(0, 6).indexOf(city) === selectedIndex
+    ? 'bg-[#222222]'
+    : 'hover:bg-[#1a1a1a]'
+}`}
                   >
                     <MapPin size={14} className='text-cyan-400' />
                     <span className='text-white'>{city.name}</span>
@@ -87,40 +115,48 @@ const Home = () => {
       </section>
 
       {/* Popular Cities */}
-      <section className='px-8 pb-16'>
+      <section className='px-8 pb-16 pt-8'>
         <h2 className='text-gray-400 text-sm font-medium mb-4 text-center'>
           POPULAR MARKETS
         </h2>
         <div className='flex flex-wrap justify-center gap-2'>
-          {POPULAR_CITIES.slice(0, 10).map(city => (
-            <button
-              key={city.id}
-              onClick={() => handleCitySelect(city.id)}
-              className='flex items-center gap-2 bg-[#111111] border border-[#222222] rounded-lg px-4 py-2 text-sm text-gray-300 hover:border-cyan-400 hover:text-cyan-400 transition-all'
-            >
-              <MapPin size={12} />
-              {city.name}, {city.stateCode}
-            </button>
-          ))}
+          {['dallas-tx', 'new-york-ny', 'miami-fl', 'chicago-il', 'los-angeles-ca', 'seattle-wa', 'boston-ma', 'denver-co', 'atlanta-ga', 'nashville-tn'].map(cityId => {
+  const city = POPULAR_CITIES.find(c => c.id === cityId)
+  if (!city) return null
+  return (
+    <button
+      key={city.id}
+      onClick={() => handleCitySelect(city.id)}
+      className='flex items-center gap-2 bg-[#111111] border border-[#222222] rounded-lg px-4 py-2 text-sm text-gray-300 hover:border-cyan-400 hover:text-cyan-400 transition-all'
+    >
+      <MapPin size={12} />
+      {city.name}, {city.stateCode}
+    </button>
+  )
+})}
         </div>
       </section>
 
       {/* Features */}
-      <section className='px-8 pb-24 grid grid-cols-3 gap-6 max-w-4xl mx-auto'>
-        {[
-          { icon: BarChart2, title: 'Market Analytics', desc: 'Deep insights into price trends, days on market, and inventory levels.' },
-          { icon: GitCompare, title: 'City Comparison', desc: 'Compare multiple markets side by side across any US cities.' },
-          { icon: MapPin, title: 'Interactive Map', desc: 'Visualize market heat across all 50 states with our interactive map.' },
-        ].map(({ icon: Icon, title, desc }) => (
-          <div key={title} className='bg-[#111111] border border-[#222222] rounded-xl p-6'>
-            <div className='w-10 h-10 bg-cyan-400/10 rounded-lg flex items-center justify-center mb-4'>
-              <Icon size={20} className='text-cyan-400' />
-            </div>
-            <h3 className='text-white font-semibold mb-2'>{title}</h3>
-            <p className='text-gray-400 text-sm'>{desc}</p>
-          </div>
-        ))}
-      </section>
+      <section className='px-8 pb-12 grid grid-cols-3 gap-6 max-w-4xl mx-auto'>
+  {[
+    { icon: BarChart2, title: 'Market Analytics', desc: 'Deep insights into price trends, days on market, and inventory levels.', path: '/dashboard' },
+    { icon: GitCompare, title: 'City Comparison', desc: 'Compare multiple markets side by side across any US cities.', path: '/compare' },
+    { icon: MapPin, title: 'Interactive Map', desc: 'Visualize market heat across all 50 states with our interactive map.', path: '/map' },
+  ].map(({ icon: Icon, title, desc, path }) => (
+    <div
+      key={title}
+      onClick={() => navigate(path)}
+      className='bg-[#111111] border border-[#222222] rounded-xl p-6 cursor-pointer hover:border-cyan-400/50 transition-all'
+    >
+      <div className='w-10 h-10 bg-cyan-400/10 rounded-lg flex items-center justify-center mb-4'>
+        <Icon size={20} className='text-cyan-400' />
+      </div>
+      <h3 className='text-white font-semibold mb-2'>{title}</h3>
+      <p className='text-gray-400 text-sm'>{desc}</p>
+    </div>
+  ))}
+</section>
 
     </div>
   )
