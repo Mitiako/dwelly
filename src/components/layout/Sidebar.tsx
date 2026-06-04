@@ -17,7 +17,7 @@ const navItems = [
 
 const Sidebar = () => {
   return (
-    <aside className='w-64 h-screen bg-[#111111] border-r border-[#222222] flex flex-col'>
+    <aside className='w-41 h-screen bg-[#111111] border-r border-[#222222] flex flex-col'>
       {/* Logo */}
       <div className='p-6 border-b border-[#222222]'>
         <NavLink to='/' className='flex items-center gap-3'>
