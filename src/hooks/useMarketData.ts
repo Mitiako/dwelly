@@ -3,6 +3,8 @@ import { mockMarketData, mockPriceTrends } from '../data/mockData'
 import { fetchMarketDataFromAPI } from '../api/rentcast'
 import { POPULAR_CITIES } from '../constants'
 import type { MarketData, PriceTrend } from '../types'
+import { getLast12Months } from '../utils/dateHelpers'
+
 
 // Хук для отримання даних ринку по cityId
 export const useMarketData = (cityId: string) => {
@@ -34,9 +36,12 @@ export const usePriceTrends = (cityId: string) => {
   return useQuery({
     queryKey: ['priceTrends', cityId],
     queryFn: async (): Promise<PriceTrend[]> => {
-      const trends = mockPriceTrends[cityId]
-      if (trends) return trends
-      return mockPriceTrends['dallas-tx']
+      const months = getLast12Months() // ← тут
+      const trends = mockPriceTrends[cityId] || mockPriceTrends['dallas-tx']
+      return trends.map((trend, index) => ({
+        ...trend,
+        month: months[index] || trend.month,
+      }))
     },
     enabled: !!cityId,
     staleTime: 1000 * 60 * 60 * 24,
