@@ -55,3 +55,8 @@ body {
 .leaflet-interactive {
   cursor: default !important;
 }
+
+.leaflet-marker-icon,
+.leaflet-circle-marker {
+  cursor: default !important;
+}
