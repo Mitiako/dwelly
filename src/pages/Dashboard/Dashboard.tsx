@@ -10,6 +10,7 @@ import { formatPrice, formatNumber, formatPercent } from '../../utils/formatters
 import { POPULAR_CITIES } from '../../constants'
 import { useSavedMarkets } from '../../hooks/useSavedMarkets'
 import { useDebounce } from '../../hooks/useDebounce'
+import { mockMarketTrends } from '../../data/mockData'
 
 const Dashboard = () => {
   const [searchParams] = useSearchParams()
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const { data: trends } = usePriceTrends(cityId)
 
   const city = POPULAR_CITIES.find(c => c.id === cityId)
+  const marketTrends = mockMarketTrends[cityId] || mockMarketTrends['dallas-tx']
   const { isMarketSaved, addMarket, removeMarket } = useSavedMarkets()
   const navigate = useNavigate()
 const [searchQuery, setSearchQuery] = useState('')
@@ -143,31 +145,31 @@ const filteredCities = POPULAR_CITIES.filter(city =>
 
       {/* KPI Cards */}
       <div className='grid grid-cols-4 gap-4'>
-        <KpiCard
-          title='Average Price'
-          value={formatPrice(marketData.saleData.averagePrice)}
-          change={5.2}
-          icon={DollarSign}
-        />
-        <KpiCard
-          title='Median Price'
-          value={formatPrice(marketData.saleData.medianPrice)}
-          change={4.8}
-          icon={TrendingUp}
-        />
-        <KpiCard
-          title='Days on Market'
-          value={`${marketData.saleData.averageDaysOnMarket} days`}
-          change={-3.1}
-          icon={Clock}
-        />
-        <KpiCard
-          title='Active Listings'
-          value={formatNumber(marketData.saleData.totalListings)}
-          change={8.4}
-          icon={Home}
-        />
-      </div>
+  <KpiCard
+    title='Average Price'
+    value={formatPrice(marketData.saleData.averagePrice)}
+    change={marketTrends.priceChange}
+    icon={DollarSign}
+  />
+  <KpiCard
+    title='Median Price'
+    value={formatPrice(marketData.saleData.medianPrice)}
+    change={marketTrends.medianPriceChange}
+    icon={TrendingUp}
+  />
+  <KpiCard
+    title='Days on Market'
+    value={`${marketData.saleData.averageDaysOnMarket} days`}
+    change={marketTrends.daysOnMarketChange}
+    icon={Clock}
+  />
+  <KpiCard
+    title='Active Listings'
+    value={formatNumber(marketData.saleData.totalListings)}
+    change={marketTrends.listingsChange}
+    icon={Home}
+  />
+</div>
 
       {/* Charts */}
       <div className='grid grid-cols-3 gap-6'>
